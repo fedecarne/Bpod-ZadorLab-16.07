@@ -1,0 +1,5 @@
+#Exclude local data
+
+Data/**
+Calibration Files/**
+Bpod System Files/BpodSystemSettings.mat
