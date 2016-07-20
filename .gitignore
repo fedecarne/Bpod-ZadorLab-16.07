@@ -1,6 +1,5 @@
 #Exclude local data
 
 Data/**
-Calibration\ Files/LiquidCalibration.mat
-Bpod System Files/**
+Calibration Files/**
 Settings Files/**
