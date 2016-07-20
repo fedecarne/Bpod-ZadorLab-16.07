@@ -3,4 +3,4 @@
 Data/**
 Calibration Files/LiquidCalibration.mat
 Calibration Files/SoundCalibration.mat
-Settings Files/BpodSystemSettings.mat
+Settings Files/**
