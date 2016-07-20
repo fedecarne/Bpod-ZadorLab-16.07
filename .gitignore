@@ -1,5 +1,6 @@
 #Exclude local data
 
 Data/**
+Calibration Files/**
 Bpod System Files/**
 Settings Files/**
