@@ -43,6 +43,7 @@ Steps to follow to install the drivers of MC USB-1608G in Ubuntu (tested in 14.0
 5) Go to Bpod/Functions/SoundCalibrator/mcc
    sudo make
    sudo make install
+   sudo cp read-usb1608G ../
 
 6) Connect the usb plug and test by doing ./read-usb1608G 1 2 10 10000
 If it return 2 values then you are fine.

@@ -164,7 +164,11 @@ FrequencyVector =  logspace(log10(MinFreq),log10(MaxFreq),nFreq);
 PsychToolboxSoundServer('init')
 
 OutputFileName = ['SoundCalibration'];
-[FileName,PathName] = uiputfile('.mat','Save Sound Calibration File',OutputFileName);
+[FileName,PathName] = uiputfile('.mat','Save Sound Calibration File',[BpodSystem.BpodPath '/Calibration Files/' OutputFileName]);
+
+if FileName==0
+    return
+end
 
 handles.filename = fullfile(PathName,FileName);
 
@@ -196,10 +200,14 @@ for inds=1:nSpeakers            % --   Loop through speakers  --
                 Sound.Frequency = FrequencyVector(indf);
                 BandLimits = Sound.Frequency * [MinBandLimit MaxBandLimit];
             
-                AttenuationVector(indf, inds,rep) = find_amplitude(Sound,TargetSPL,BandLimits,handles);
+                AttenuationVector(indf, inds,rep) = FindAmplitude(Sound,TargetSPL,BandLimits,handles);
                 if AttenuationVector(indf, inds,rep) == 1
                      errordlg('ERROR: The sound recorded was not loud enough to calibrate. Please manually increase the speaker volume and restart.');
                      return;
+                end
+                if isnan(AttenuationVector(indf, inds,rep))
+                    % Calibration aborted
+                    return
                 end
                 axes(handles.attFig);
                 hold on

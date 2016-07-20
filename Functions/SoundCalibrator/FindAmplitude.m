@@ -5,7 +5,7 @@
 % Modified by Peter Znamenskiy - 2009.02.18
 % Modified by F. Carnevale - 2015.02.19
 
-function [Amplitude] = find_amplitude(SoundParam,TargetSPL,BandLimits, handles)
+function [Amplitude] = FindAmplitude(SoundParam,TargetSPL,BandLimits, handles)
     global BpodSystem
     InitialAmplitude = 0.2;
     AcceptableDifference_dBSPL = 0.5;
@@ -18,9 +18,11 @@ function [Amplitude] = find_amplitude(SoundParam,TargetSPL,BandLimits, handles)
 
     for inditer=1:MaxIterations
         if BpodSystem.PluginObjects.SoundCal.Abort
-            error('Calibration Manually Aborted. Please restart the calibrator before trying again.')
+            errordlg('Calibration manually aborted. Please restart the calibrator before trying again.')
+            Amplitude= 0/0;
+            return
         end
-        [PowerAtThisFrequency, signal_toplot] = response_one_sound(SoundParam,BandLimits);
+        [PowerAtThisFrequency, signal_toplot] = ResponseOneSound(SoundParam,BandLimits);
         PowerAtThisFrequency_dBSPL = 10*log10(PowerAtThisFrequency/SPLref^2);
         
         % plot spectrum of recorded sound

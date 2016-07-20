@@ -112,9 +112,11 @@ tvec = 0:1/fsOut:toneDuration;
 
 CalFilePath = get(handles.filename_edit, 'String');
 try
-    open(CalFilePath); % Creates local variable "SoundCal", a struct with the cal table and coefficients
+    r = open(CalFilePath); % Creates local variable "SoundCal", a struct with the cal table and coefficients
+    SoundCal=r.SoundCal;
 catch
-    error('Could not open calibration file');
+    errordlg('Could not open calibration file');
+    return
 end
 frequency = str2double(get(handles.frequency_edit, 'String'));
 speaker = get(handles.speaker1, 'Value');
@@ -122,7 +124,7 @@ if speaker == 0 % Other radio button is selected
     speaker = 2;
 end
 % Attenuation for this frequency at Target SPL
-toneAtt = polyval(SoundCal(1,handles.speaker).Coefficient,frequency);
+toneAtt = polyval(SoundCal(1,speaker).Coefficient,frequency);
 
 diffSPL = str2double(handles.volume_edit.String) - SoundCal(1,speaker).TargetSPL;
 attFactor = sqrt(10^(diffSPL/10));
@@ -131,10 +133,9 @@ amplitude = toneAtt*attFactor;
 
 SoundVec = amplitude * sin(2*pi*frequency*tvec);
 
-if handles.speaker==1
+if speaker==1
     SoundVec = [ SoundVec; zeros(1,length(SoundVec)) ];
-end
-if handles.speaker==2
+else
     SoundVec = [ zeros(1,length(SoundVec)); SoundVec ];
 end
 
@@ -149,7 +150,7 @@ function close_Callback(hObject, eventdata, handles)
 % hObject    handle to close (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-close(handles.gui)
+close(handles.figure1)
 
 % --- Executes when selected object changed in unitgroup.
 function unitgroup_SelectionChangedFcn(hObject, eventdata, handles)
@@ -191,7 +192,8 @@ function file_Callback(hObject, eventdata, handles)
 % hObject    handle to file (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[FileName,PathName] = uigetfile;
+global BpodSystem
+[FileName,PathName] = uigetfile('.mat','Select Calibration File',[BpodSystem.BpodPath '/Calibration Files/']);
 handles.calfile = fullfile(PathName,FileName);
 handles.filename_edit.String = handles.calfile;
 load(handles.calfile)

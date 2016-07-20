@@ -26,6 +26,7 @@ function SoundData = CalibratedPureTone(Frequency, Duration, Intensity, Side, Ra
 %
 % Additional required arguments are: SamplingFreq (Sampling Frequency of
 % the sound server in Hz), and CalibrationData (also stored in BpodSystem.CalibrationTables.SoundCal)
+
 nChannels = length(CalibrationData);
 nSamples = Duration*SamplingFreq;
 nRampSamples = RampDuration*SamplingFreq;

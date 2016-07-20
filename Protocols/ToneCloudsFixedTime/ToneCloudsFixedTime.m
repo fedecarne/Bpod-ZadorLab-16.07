@@ -153,6 +153,9 @@ BpodSystem.Data.StimulationTrials = zeros(1,MaxTrials);
 % Initialize parameter GUI plugin
 BpodParameterGUI('init', S);
 
+% Total Reward display (online display of the total amount of liquid reward earned)
+TotalRewardDisplay('init');
+
 % Outcome plot
 BpodSystem.ProtocolFigures.OutcomePlotFig = figure('Position', [457 803 1000 250],'name','Outcome plot','numbertitle','off', 'MenuBar', 'none', 'Resize', 'off');
 BpodSystem.GUIHandles.OutcomePlot = axes('Position', [.075 .3 .89 .6]);
@@ -668,7 +671,7 @@ for currentTrial = 1:MaxTrials
 %         UpdateBinoPlot();
         UpdateStimulusPlot(Cloud_toplot);
         PokesPlot('update');
-        
+        UpdateTotalRewardDisplay(S.GUI.CenterRewardAmount+S.GUI.SideRewardAmount, currentTrial);
         SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
     end
     if BpodSystem.BeingUsed == 0
@@ -693,6 +696,12 @@ EvidenceStrength = BpodSystem.Data.EvidenceStrength;
 nTrials = BpodSystem.Data.nTrials;
 PsychoPlot(BpodSystem.GUIHandles.PsychoPlot, 'update',nTrials,2-TrialTypes,Outcomes,EvidenceStrength);
 
+function UpdateTotalRewardDisplay(RewardAmount, currentTrial)
+% If rewarded based on the state data, update the TotalRewardDisplay
+global BpodSystem
+    if ~isnan(BpodSystem.Data.RawEvents.Trial{currentTrial}.States.Reward(1))
+        TotalRewardDisplay('add', RewardAmount);
+    end
 
 % function UpdateBinoPlot()
 % global BpodSystem

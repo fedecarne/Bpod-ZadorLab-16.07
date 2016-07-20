@@ -1,4 +1,6 @@
-function [data] = mcc_daq(varargin)
+function [data] = MCdaq(varargin)
+
+global BpodSystem
 
 options = struct('n_scan',1,'freq',1000,'n_chan',16,'range', 10);
 
@@ -21,7 +23,9 @@ for pair = reshape(varargin,2,[])
 end
 
 %./read-usb1608G n_chan n_scan range freq
-[status,cmdout] = system(['./read-usb1608G ' num2str(options.n_chan) ' ' num2str(options.n_scan) ' ' num2str(options.range) ' ' num2str(options.freq)]);
+aux = strfind(BpodSystem.BpodPath,'/');
+BpodFolder = BpodSystem.BpodPath(aux(end)+1:end);
+[status,cmdout] = system(['~/' BpodFolder '/Functions/SoundCalibrator/mcc/read-usb1608G ' num2str(options.n_chan) ' ' num2str(options.n_scan) ' ' num2str(options.range) ' ' num2str(options.freq)]);
 d = sscanf(cmdout,'%f');
 
 try

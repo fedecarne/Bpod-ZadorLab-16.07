@@ -5,7 +5,7 @@
 % Uri  - 2013.05.27
 % Fede - 2015.09.10
 
-function [BandPower, signal_toplot, Parameters, ThisPSD] = response_one_sound(SoundParam,BandLimits)
+function [bpower, signal_toplot, Parameters, ThisPSD] = ResponseOneSound(SoundParam,BandLimits)
 global BpodSystem
 % --- Parameters of the test ---
 Parameters.ToneDuration = 1;%0.8;         % sec
@@ -21,7 +21,7 @@ hPSD.SegmentLength=2048*8;
 channel = 1;
 n_chan = 1; 
 
-Parameters.FsIn = 200000;
+Parameters.FsIn = 192000;
 n_data = Parameters.TimeToRecord*Parameters.FsIn;
 
 % --- Creating and loading sounds ---
@@ -46,7 +46,7 @@ if ispc
     pause(.5);
     RawSignal = getdata(BpodSystem.PluginObjects.USB1608G.Board)';
 else
-    data = mcc_daq('n_scan',n_data,'freq',Parameters.FsIn,'n_chan',n_chan);
+    data = MCdaq('n_scan',n_data,'freq',Parameters.FsIn,'n_chan',n_chan);
     RawSignal = data(channel,:); 
 end
 
@@ -58,7 +58,7 @@ PsychToolboxSoundServer('StopAll');
 
 % --- Calculate power ---
 ThisPSD = psd(hPSD,RawSignal,'Fs',Parameters.FsIn);
-BandPower = band_power(ThisPSD.Data,ThisPSD.Frequencies,BandLimits);
+bpower = BandPower(ThisPSD.Data,ThisPSD.Frequencies,BandLimits);
 
 
 function StimuliVec=SqCosBeeper(RR,SR,Freq,BeepDuration,CosRamp,MaxToneDuration)
