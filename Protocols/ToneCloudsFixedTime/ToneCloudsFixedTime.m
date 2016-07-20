@@ -18,13 +18,13 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUI.Stage = 4;
     % 2. Parameter types and meta-data (assumes "edit" style if no meta info is specified)
     S.GUIMeta.Stage.Style = 'popupmenu';
-    S.GUIMeta.Stage.String = {'Direct', 'Full 1', 'Full 2', 'Full 3'};
+    S.GUIMeta.Stage.String = {'Direct', 'Full 1', 'Full 2', 'Full 3', 'wStim'};
     % Assigns each parameter to a panel on the GUI (assumes "Parameters" panel if not specified)
     S.GUIPanels.Protocol = {'Subject', 'Stage'};
     
     
     % Stimulation Parameters
-    S.GUI.UseStimulation = 1;
+    S.GUI.UseStimulation = 0;
     S.GUIMeta.UseStimulation.Style = 'checkbox';
     S.GUI.TrainDelay = 0;
     S.GUI.PulseWidth = 0.002;
@@ -259,33 +259,25 @@ for currentTrial = 1:MaxTrials
     if S.GUI.UseStimulation
         StimulationTrials(currentTrial) = rand < S.GUI.StimProbability;
         if (~UsingStimulation)
-            try
-                PulsePal;
-                load TC4B_PulsePalProgram;
-                ProgramPulsePal(ParameterMatrix);
-                S.InitialPulsePalParameters = ParameterMatrix;
-                UsingStimulation = 1;
-            catch
-                disp('No PulsePal connected')
-            end
+            PulsePal;
+            load TC4B_PulsePalProgram;
+            ProgramPulsePal(ParameterMatrix);
+            S.InitialPulsePalParameters = ParameterMatrix;
+            UsingStimulation = 1;
         end  
         
-        try
-            ProgramPulsePalParam(1, 'Phase1Duration', S.GUI.PulseWidth);
-            ProgramPulsePalParam(1, 'InterPulseInterval', S.GUI.PulseInterval);
-            ProgramPulsePalParam(1, 'PulseTrainDelay', S.GUI.TrainDelay);
-            if StimulationTrials(currentTrial)
-                ProgramPulsePalParam(4,'linkedtotriggerCH1', 1);
-            else
-                ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
-            end
-
-            StimulationSettings{currentTrial}.PulseWidth = S.GUI.PulseWidth;
-            StimulationSettings{currentTrial}.PulseInterval = S.GUI.PulseInterval;
-            StimulationSettings{currentTrial}.TrainDelay = S.GUI.TrainDelay;
-        catch
-            disp('')
+        ProgramPulsePalParam(1, 'Phase1Duration', S.GUI.PulseWidth);
+        ProgramPulsePalParam(1, 'InterPulseInterval', S.GUI.PulseInterval);
+        ProgramPulsePalParam(1, 'PulseTrainDelay', S.GUI.TrainDelay);
+        if StimulationTrials(currentTrial)
+            ProgramPulsePalParam(4,'linkedtotriggerCH1', 1);
+        else
+            ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
         end
+
+        StimulationSettings{currentTrial}.PulseWidth = S.GUI.PulseWidth;
+        StimulationSettings{currentTrial}.PulseInterval = S.GUI.PulseInterval;
+        StimulationSettings{currentTrial}.TrainDelay = S.GUI.TrainDelay;
     else
         if UsingStimulation
             ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
@@ -480,6 +472,22 @@ for currentTrial = 1:MaxTrials
             S.GUI.PrestimDurationEnd = 0.25; % Prestim duration end
             S.GUI.PrestimDurationNtrials = 2; % Required number of valid trials before each step    
 
+        case 5 % Full task with Stimulation
+               % same as full 3
+            
+            S.GUI.UseStimulation = 1;
+               
+            DifficultySet = [S.GUI.DifficultyLow S.GUI.DifficultyLow:(S.GUI.DifficultyHigh-S.GUI.DifficultyLow)/(S.GUI.nDifficulties-1):S.GUI.DifficultyHigh S.GUI.DifficultyHigh];
+            DifficultySet = unique(DifficultySet);
+            EvidenceStrength(currentTrial) = DifficultySet(randi(size(DifficultySet,2)));  
+            GoSignalStateChangeConditions = {'Tup', 'WaitForResponse'};
+            
+            S.GUI.PunishSound = 1;                    
+            S.GUI.TimeoutDuration = 4;
+            S.GUI.SoundDurationNtrials = 2;
+            S.GUI.PrestimDistribution = 2;
+            S.GUI.PrestimDurationEnd = 0.25; % Prestim duration end
+            S.GUI.PrestimDurationNtrials = 2; % Required number of valid trials before each step    
     end
     
     % Update ParameterGUI according to stage
@@ -624,7 +632,8 @@ for currentTrial = 1:MaxTrials
 
     SendStateMatrix(sma);
     RawEvents = RunStateMatrix;
-        
+
+    tic
     if ~isempty(fieldnames(RawEvents)) % If trial data was returned
         BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Computes trial events from raw data
         BpodSystem.Data.TrialSettings(currentTrial) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
@@ -686,6 +695,7 @@ for currentTrial = 1:MaxTrials
         UpdateTotalRewardDisplay(S.GUI.CenterRewardAmount+S.GUI.SideRewardAmount, currentTrial);
         SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
     end
+    toc
     if BpodSystem.BeingUsed == 0
         return
     end
