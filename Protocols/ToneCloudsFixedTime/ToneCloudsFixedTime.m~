@@ -259,33 +259,25 @@ for currentTrial = 1:MaxTrials
     if S.GUI.UseStimulation
         StimulationTrials(currentTrial) = rand < S.GUI.StimProbability;
         if (~UsingStimulation)
-            try
-                PulsePal;
-                load TC4B_PulsePalProgram;
-                ProgramPulsePal(ParameterMatrix);
-                S.InitialPulsePalParameters = ParameterMatrix;
-                UsingStimulation = 1;
-            catch
-                disp('No PulsePal connected')
-            end
+            PulsePal;
+            load TC4B_PulsePalProgram;
+            ProgramPulsePal(ParameterMatrix);
+            S.InitialPulsePalParameters = ParameterMatrix;
+            UsingStimulation = 1;
         end  
-        
-        try
-            ProgramPulsePalParam(1, 'Phase1Duration', S.GUI.PulseWidth);
-            ProgramPulsePalParam(1, 'InterPulseInterval', S.GUI.PulseInterval);
-            ProgramPulsePalParam(1, 'PulseTrainDelay', S.GUI.TrainDelay);
-            if StimulationTrials(currentTrial)
-                ProgramPulsePalParam(4,'linkedtotriggerCH1', 1);
-            else
-                ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
-            end
-
-            StimulationSettings{currentTrial}.PulseWidth = S.GUI.PulseWidth;
-            StimulationSettings{currentTrial}.PulseInterval = S.GUI.PulseInterval;
-            StimulationSettings{currentTrial}.TrainDelay = S.GUI.TrainDelay;
-        catch
-            disp('')
+        ProgramPulsePalParam(1, 'Phase1Duration', S.GUI.PulseWidth);
+        ProgramPulsePalParam(1, 'InterPulseInterval', S.GUI.PulseInterval);
+        ProgramPulsePalParam(1, 'PulseTrainDelay', S.GUI.TrainDelay);
+        if StimulationTrials(currentTrial)
+            ProgramPulsePalParam(4,'linkedtotriggerCH1', 1);
+        else
+            ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
         end
+        
+        StimulationSettings{currentTrial}.PulseWidth = S.GUI.PulseWidth;
+        StimulationSettings{currentTrial}.PulseInterval = S.GUI.PulseInterval;
+        StimulationSettings{currentTrial}.TrainDelay = S.GUI.TrainDelay;
+        
     else
         if UsingStimulation
             ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
