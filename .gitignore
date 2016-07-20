@@ -1,5 +1,5 @@
 #Exclude local data
 
 Data/**
-Calibration Files/**
+Calibration Files/
 Settings Files/**
