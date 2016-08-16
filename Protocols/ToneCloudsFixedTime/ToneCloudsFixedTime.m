@@ -206,6 +206,10 @@ poke_colors = struct( ...
     
 PokesPlot('init', state_colors,poke_colors);
 
+SummaryAndSave('init');
+SummaryAndSave('display','Subject', BpodSystem.GUIData.SubjectName);
+SummaryAndSave('display','Stage', S.GUIMeta.Stage.String{S.GUI.Stage});
+
 
 %% Define stimuli and send to sound server
 
@@ -693,6 +697,14 @@ for currentTrial = 1:MaxTrials
         UpdateStimulusPlot(Cloud_toplot);
         PokesPlot('update');
         UpdateTotalRewardDisplay(S.GUI.CenterRewardAmount+S.GUI.SideRewardAmount, currentTrial);
+        
+        SummaryAndSave('display','Association', S.GUIMeta.FreqSide.String{S.GUI.FreqSide});
+        SummaryAndSave('display','Time', floor(toc(SessionBirthdate)/60));
+        SummaryAndSave('display','Water', AccumulatedReward);
+        SummaryAndSave('display','Correct', sum(Outcomes > 0));
+        SummaryAndSave('display','Valid', sum(Outcomes >= 0));
+        SummaryAndSave('display','Total', currentTrial);
+        
         SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
     end
     toc
