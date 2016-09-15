@@ -270,9 +270,9 @@ for currentTrial = 1:MaxTrials
             UsingStimulation = 1;
         end  
         
-        ProgramPulsePalParam(1, 'Phase1Duration', S.GUI.PulseWidth);
-        ProgramPulsePalParam(1, 'InterPulseInterval', S.GUI.PulseInterval);
-        ProgramPulsePalParam(1, 'PulseTrainDelay', S.GUI.TrainDelay);
+        ProgramPulsePalParam(4, 'Phase1Duration', S.GUI.PulseWidth);
+        ProgramPulsePalParam(4, 'InterPulseInterval', S.GUI.PulseInterval);
+        ProgramPulsePalParam(4, 'PulseTrainDelay', S.GUI.TrainDelay);
         if StimulationTrials(currentTrial)
             ProgramPulsePalParam(4,'linkedtotriggerCH1', 1);
         else
@@ -592,7 +592,7 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'DeliverStimulus', ...
         'Timer', SoundDuration(currentTrial),...
         'StateChangeConditions', {'Tup', 'Memory', 'Port2Out', 'EarlyWithdrawal'},...
-        'OutputActions', {'SoftCode', 1,'PWM2', 255, 'BNCState', UsingStimulation});
+        'OutputActions', {'SoftCode', 1,'PWM2', 255, 'BNCState', 2});
 
     sma = AddState(sma, 'Name', 'Memory', ...
         'Timer', MemoryDuration(currentTrial),...

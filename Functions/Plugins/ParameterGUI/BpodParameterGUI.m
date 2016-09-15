@@ -156,7 +156,8 @@ switch Op
                     if GUIParam ~= ThisParamLastValue
                         Params.GUI.(ThisParamName) = GUIParam;
                     elseif Params.GUI.(ThisParamName) ~= ThisParamLastValue
-                        set(ThisParamHandle, 'String', num2str(GUIParam));
+                        set(ThisParamHandle, 'String', num2str(Params.GUI.(ThisParamName)));
+                        %set(ThisParamHandle, 'String', num2str(GUIParam)); %%is this wrong??                        
                     end
                 case 2 % Text
                     GUIParam = Params.GUI.(ThisParamName);
