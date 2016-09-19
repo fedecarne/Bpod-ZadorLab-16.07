@@ -283,8 +283,10 @@ for currentTrial = 1:MaxTrials
         StimulationSettings{currentTrial}.PulseInterval = S.GUI.PulseInterval;
         StimulationSettings{currentTrial}.TrainDelay = S.GUI.TrainDelay;
     else
-
-        ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
+        try
+            ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
+        catch
+        end
         UsingStimulation = 0;
         StimulationTrials(currentTrial) = 0;
     end
@@ -463,7 +465,12 @@ for currentTrial = 1:MaxTrials
                % Full 3: sound duration ramping up 2 trials, prestim 0.25 uniform
                % (until the end, increasing difficulty)
                
-            S.GUI.DifficultyLow = 0.5;
+            S.GUI.MemoryDurationStart = 0;
+            S.GUI.MemoryDurationEnd = 0.3;
+            S.GUI.MemoryDurationStep = 0.1;
+            S.GUI.MemoryDurationNtrials = 2;
+            
+            S.GUI.DifficultyLow = 0.4;
             S.GUI.DifficultyHigh = 1;
             S.GUI.nDifficulties = 5;
             
