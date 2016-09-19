@@ -18,7 +18,7 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUI.Stage = 4;
     % 2. Parameter types and meta-data (assumes "edit" style if no meta info is specified)
     S.GUIMeta.Stage.Style = 'popupmenu';
-    S.GUIMeta.Stage.String = {'Direct', 'Full 1', 'Full 2', 'Full 3', 'wStim'};
+    S.GUIMeta.Stage.String = {'Direct', 'Full 1', 'Full 2', 'Full 3', 'Full4'};
     % Assigns each parameter to a panel on the GUI (assumes "Parameters" panel if not specified)
     S.GUIPanels.Protocol = {'Subject', 'Stage'};
     
@@ -283,10 +283,9 @@ for currentTrial = 1:MaxTrials
         StimulationSettings{currentTrial}.PulseInterval = S.GUI.PulseInterval;
         StimulationSettings{currentTrial}.TrainDelay = S.GUI.TrainDelay;
     else
-        if UsingStimulation
-            ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
-            UsingStimulation = 0;
-        end
+
+        ProgramPulsePalParam(4,'linkedtotriggerCH1', 0);
+        UsingStimulation = 0;
         StimulationTrials(currentTrial) = 0;
     end
     
@@ -463,6 +462,10 @@ for currentTrial = 1:MaxTrials
         case 4 % Full task 3
                % Full 3: sound duration ramping up 2 trials, prestim 0.25 uniform
                % (until the end, increasing difficulty)
+               
+            S.GUI.DifficultyLow = 0.5;
+            S.GUI.DifficultyHigh = 1;
+            S.GUI.nDifficulties = 5;
             
             DifficultySet = [S.GUI.DifficultyLow S.GUI.DifficultyLow:(S.GUI.DifficultyHigh-S.GUI.DifficultyLow)/(S.GUI.nDifficulties-1):S.GUI.DifficultyHigh S.GUI.DifficultyHigh];
             DifficultySet = unique(DifficultySet);
@@ -476,11 +479,20 @@ for currentTrial = 1:MaxTrials
             S.GUI.PrestimDurationEnd = 0.25; % Prestim duration end
             S.GUI.PrestimDurationNtrials = 2; % Required number of valid trials before each step    
 
-        case 5 % Full task with Stimulation
+        case 5 % Full task 4 (full Psycometric with Memory and Stimulation)
                % same as full 3
             
             S.GUI.UseStimulation = 1;
+
+            S.GUI.MemoryDurationStart = 0;
+            S.GUI.MemoryDurationEnd = 0.3;
+            S.GUI.MemoryDurationStep = 0.1;
+            S.GUI.MemoryDurationNtrials = 2;
                
+            S.GUI.DifficultyLow = 0.4;
+            S.GUI.DifficultyHigh = 1;
+            S.GUI.nDifficulties = 5;
+            
             DifficultySet = [S.GUI.DifficultyLow S.GUI.DifficultyLow:(S.GUI.DifficultyHigh-S.GUI.DifficultyLow)/(S.GUI.nDifficulties-1):S.GUI.DifficultyHigh S.GUI.DifficultyHigh];
             DifficultySet = unique(DifficultySet);
             EvidenceStrength(currentTrial) = DifficultySet(randi(size(DifficultySet,2)));  
@@ -715,7 +727,7 @@ end
 
 function UpdateOutcomePlot(TrialTypes, Outcomes)
 global BpodSystem
-EvidenceStrength = BpodSystem.Data.EvidenceStrength;
+EvidenceStrength = BpodSystem.Data.EvidenceStrength
 nTrials = BpodSystem.Data.nTrials;
 OutcomePlot(BpodSystem.GUIHandles.OutcomePlot,'update',nTrials+1,2-TrialTypes,Outcomes,EvidenceStrength);
 

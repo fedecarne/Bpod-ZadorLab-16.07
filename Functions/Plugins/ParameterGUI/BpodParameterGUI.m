@@ -171,7 +171,8 @@ switch Op
                     if GUIParam ~= ThisParamLastValue
                         Params.GUI.(ThisParamName) = GUIParam;
                     elseif Params.GUI.(ThisParamName) ~= ThisParamLastValue
-                        set(ThisParamHandle, 'Value', GUIParam);
+                        set(ThisParamHandle, 'Value', Params.GUI.(ThisParamName));
+                        %set(ThisParamHandle, 'Value', GUIParam);
                     end
                 case 4 % Popupmenu
                     GUIParam = get(ThisParamHandle, 'Value');

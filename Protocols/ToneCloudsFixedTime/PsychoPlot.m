@@ -57,7 +57,7 @@ switch Action
         Ydata = BpodSystem.GUIHandles.PsychometricData(:,2);
         nBins = length(Xdata);
         for i = 1:nBins
-            Ydata(i) = mean(LeftTrials(SidedEvidenceStrength==Xdata(i)));
+            Ydata(i) = mean(LeftTrials(abs(SidedEvidenceStrength-Xdata(i)+0.001)<bin_size/2));
         end
         
         set(BpodSystem.GUIHandles.PsychometricLine, 'xdata', Xdata, 'ydata', Ydata);
