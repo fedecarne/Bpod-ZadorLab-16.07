@@ -15,10 +15,10 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     % Protocol parameters
     % 1. Define parameters and values (with legacy syntax)
     S.GUI.Subject = BpodSystem.GUIData.SubjectName;
-    S.GUI.Stage = 4;
+    S.GUI.Stage = 3;
     % 2. Parameter types and meta-data (assumes "edit" style if no meta info is specified)
     S.GUIMeta.Stage.Style = 'popupmenu';
-    S.GUIMeta.Stage.String = {'Direct', 'Full 1', 'Full 2', 'Full 3', 'wStim'};
+    S.GUIMeta.Stage.String = {'Direct', 'Full 1', 'Full 2'};
     % Assigns each parameter to a panel on the GUI (assumes "Parameters" panel if not specified)
     S.GUIPanels.Protocol = {'Subject', 'Stage'};
     
@@ -205,6 +205,10 @@ poke_colors = struct( ...
       'R',  0.9*[1 0.66 0]);
     
 PokesPlot('init', state_colors,poke_colors);
+
+SummaryAndSave('init');
+SummaryAndSave('display','Subject', BpodSystem.GUIData.SubjectName);
+SummaryAndSave('display','Stage', S.GUIMeta.Stage.String{S.GUI.Stage});
 
 
 %% Define stimuli and send to sound server
@@ -455,39 +459,6 @@ for currentTrial = 1:MaxTrials
             S.GUI.PrestimDistribution = 2;
             S.GUI.PrestimDurationEnd = 0.10; % Prestim duration end
             S.GUI.PrestimDurationNtrials = 20; % Required number of valid trials before each step    
-                    
-        case 4 % Full task 3
-               % Full 3: sound duration ramping up 2 trials, prestim 0.25 uniform
-               % (until the end, increasing difficulty)
-            
-            DifficultySet = [S.GUI.DifficultyLow S.GUI.DifficultyLow:(S.GUI.DifficultyHigh-S.GUI.DifficultyLow)/(S.GUI.nDifficulties-1):S.GUI.DifficultyHigh S.GUI.DifficultyHigh];
-            DifficultySet = unique(DifficultySet);
-            EvidenceStrength(currentTrial) = DifficultySet(randi(size(DifficultySet,2)));  
-            GoSignalStateChangeConditions = {'Tup', 'WaitForResponse'};
-            
-            S.GUI.PunishSound = 1;                    
-            S.GUI.TimeoutDuration = 4;
-            S.GUI.SoundDurationNtrials = 2;
-            S.GUI.PrestimDistribution = 2;
-            S.GUI.PrestimDurationEnd = 0.25; % Prestim duration end
-            S.GUI.PrestimDurationNtrials = 2; % Required number of valid trials before each step    
-
-        case 5 % Full task with Stimulation
-               % same as full 3
-            
-            S.GUI.UseStimulation = 1;
-               
-            DifficultySet = [S.GUI.DifficultyLow S.GUI.DifficultyLow:(S.GUI.DifficultyHigh-S.GUI.DifficultyLow)/(S.GUI.nDifficulties-1):S.GUI.DifficultyHigh S.GUI.DifficultyHigh];
-            DifficultySet = unique(DifficultySet);
-            EvidenceStrength(currentTrial) = DifficultySet(randi(size(DifficultySet,2)));  
-            GoSignalStateChangeConditions = {'Tup', 'WaitForResponse'};
-            
-            S.GUI.PunishSound = 1;                    
-            S.GUI.TimeoutDuration = 4;
-            S.GUI.SoundDurationNtrials = 2;
-            S.GUI.PrestimDistribution = 2;
-            S.GUI.PrestimDurationEnd = 0.25; % Prestim duration end
-            S.GUI.PrestimDurationNtrials = 2; % Required number of valid trials before each step    
     end
     
     % Update ParameterGUI according to stage
@@ -574,11 +545,6 @@ for currentTrial = 1:MaxTrials
         LightSideStimulus = 'PWM3';
     end
     
-    if S.GUI.Stage==1
-        LightSideAfterStimulus = LightSideStimulus;
-    else
-        LightSideAfterStimulus = 'PWM4';
-    end
 
     sma = NewStateMatrix(); % Assemble state matrix
 
@@ -600,12 +566,12 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'Memory', ...
         'Timer', MemoryDuration(currentTrial),...
         'StateChangeConditions', {'Tup', 'GoSignal', 'Port2Out', 'EarlyWithdrawal'},...
-        'OutputActions', {LightSideAfterStimulus, 255});
+        'OutputActions', {LightSideStimulus, 255});
 
     sma = AddState(sma, 'Name', 'GoSignal', ...
         'Timer', CenterValveTime,...
         'StateChangeConditions', GoSignalStateChangeConditions,...
-        'OutputActions', {'ValveState', CenterValveCode, LightSideAfterStimulus, 255});
+        'OutputActions', {'ValveState', CenterValveCode, LightSideStimulus, 255});
 
     sma = AddState(sma, 'Name', 'EarlyWithdrawal', ...
         'Timer', 0,...
@@ -615,17 +581,17 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'WaitForResponse', ...
         'Timer', S.GUI.TimeForResponse,...
         'StateChangeConditions', {'Tup', 'exit', RewardedPort, 'Reward', PunishedPort, 'Punish'},...
-        'OutputActions', {LightSideAfterStimulus, 255});
+        'OutputActions', {LightSideStimulus, 255});
 
     sma = AddState(sma, 'Name', 'Reward', ...
         'Timer', ValveTime,...
         'StateChangeConditions', {'Tup', 'Drinking'},...
-        'OutputActions', {'ValveState', ValveCode, LightSideAfterStimulus, 255});
+        'OutputActions', {'ValveState', ValveCode, LightSideStimulus, 255});
 
     sma = AddState(sma, 'Name', 'Drinking', ...
         'Timer', 0,...
         'StateChangeConditions', {CorrectWithdrawalEvent, 'exit'},...
-        'OutputActions', {LightSideAfterStimulus, 255});
+        'OutputActions', {LightSideStimulus, 255});
 
     sma = AddState(sma, 'Name', 'Punish', ...
         'Timer', S.GUI.TimeoutDuration,...
@@ -701,6 +667,13 @@ for currentTrial = 1:MaxTrials
         PokesPlot('update');
         UpdateTotalRewardDisplay(S.GUI.CenterRewardAmount+S.GUI.SideRewardAmount, currentTrial);
         SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
+        
+        SummaryAndSave('display','Association', S.GUIMeta.FreqSide.String{S.GUI.FreqSide});
+        SummaryAndSave('display','Time', floor(toc(SessionBirthdate)/60));
+        SummaryAndSave('display','Water', AccumulatedReward);
+        SummaryAndSave('display','Correct', sum(Outcomes > 0));
+        SummaryAndSave('display','Valid', sum(Outcomes >= 0));
+        SummaryAndSave('display','Total', currentTrial);
     end
     toc
     if BpodSystem.BeingUsed == 0
