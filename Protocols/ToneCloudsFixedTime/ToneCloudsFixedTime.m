@@ -43,10 +43,12 @@ if isempty(fieldnames(S))  % If settings file was an empty struct, populate stru
     S.GUI.VolumeMax = 60; % Highest Volume dB
     S.GUI.AudibleHuman = 0;
     S.GUIMeta.AudibleHuman.Style = 'checkbox';
-    S.GUI.LightsOn = 1;
-    S.GUIMeta.LightsOn.Style = 'checkbox';
+    S.GUI.UnInformativeLightsOn = 1;
+    S.GUI.InformativeLightsOn = 0;
+    S.GUIMeta.UnInformativeLightsOn.Style = 'checkbox';
+    S.GUIMeta.InformativeLightsOn.Style = 'checkbox';
     S.GUIPanels.StimulusSettings = {'DifficultyLow', 'DifficultyHigh', 'nDifficulties'...
-        'ToneOverlap', 'ToneDuration', 'VolumeMin', 'VolumeMax', 'AudibleHuman','LightsOn'};
+        'ToneOverlap', 'ToneDuration', 'VolumeMin', 'VolumeMax', 'AudibleHuman','UnInformativeLightsOn','InformativeLightsOn'};
     
     % Reward parameters
     S.GUI.SideRewardAmount = 2.5;
@@ -294,8 +296,17 @@ for currentTrial = 1:MaxTrials
     end
     
     if S.GUI.AudibleHuman, minFreq = 200; maxFreq = 2000; else minFreq = 5000; maxFreq = 40000; end
-    if S.GUI.LightsOn, LightsOn = 255; else LightsOn = 0; end
-    
+    if S.GUI.UnInformativeLightsOn, UnInformativeLightsOn = 255; else UnInformativeLightsOn = 0; end
+    if S.GUI.InformativeLightsOn, 
+        InformativeLightsOn = 255; 
+    else
+        if S.GUI.UnInformativeLightsOn
+            InformativeLightsOn = 255;
+        else
+            InformativeLightsOn = 0;
+        end
+    end
+        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Prestimulation Duration
 
@@ -591,11 +602,13 @@ for currentTrial = 1:MaxTrials
         ValveCode = 1; ValveTime = LeftValveTime;
         RewardedPort = {'Port1In'};
         PunishedPort = {'Port3In'};
+        LightSideStimulus = 'PWM1';
     else                           % type 2 means reward at right
         CorrectWithdrawalEvent = 'Port3Out';
         ValveCode = 4; ValveTime = RightValveTime;
         RewardedPort = {'Port3In'}; 
         PunishedPort = {'Port1In'};
+        LightSideStimulus = 'PWM3';
     end
 
 
@@ -609,42 +622,42 @@ for currentTrial = 1:MaxTrials
     sma = AddState(sma, 'Name', 'Delay', ...
         'Timer', PrestimDuration(currentTrial),...
         'StateChangeConditions', {'Tup', 'DeliverStimulus', 'Port2Out', 'EarlyWithdrawal'},...
-        'OutputActions', {'PWM2', LightsOn});
+        'OutputActions', {'PWM2', UnInformativeLightsOn});
 
     sma = AddState(sma, 'Name', 'DeliverStimulus', ...
         'Timer', SoundDuration(currentTrial),...
         'StateChangeConditions', {'Tup', 'Memory', 'Port2Out', 'EarlyWithdrawal'},...
-        'OutputActions', {'SoftCode', 1,'PWM2', LightsOn, 'BNCState', 2});
+        'OutputActions', {'SoftCode', 1,'PWM2', UnInformativeLightsOn, 'BNCState', 2});
 
     sma = AddState(sma, 'Name', 'Memory', ...
         'Timer', MemoryDuration(currentTrial),...
         'StateChangeConditions', {'Tup', 'GoSignal', 'Port2Out', 'EarlyWithdrawal'},...
-        'OutputActions', {'PWM2', LightsOn});
+        'OutputActions', {'PWM2', UnInformativeLightsOn});
 
     sma = AddState(sma, 'Name', 'GoSignal', ...
         'Timer', CenterValveTime,...
         'StateChangeConditions', GoSignalStateChangeConditions,...
-        'OutputActions', {'ValveState', CenterValveCode,'PWM2', LightsOn});
+        'OutputActions', {'ValveState', CenterValveCode,'PWM2', UnInformativeLightsOn});
 
     sma = AddState(sma, 'Name', 'EarlyWithdrawal', ...
         'Timer', 0,...
         'StateChangeConditions', {'Tup', 'EarlyWithdrawalPunish'},...
-        'OutputActions', {'SoftCode', 255,'PWM2', LightsOn});
+        'OutputActions', {'SoftCode', 255,'PWM2', UnInformativeLightsOn});
 
     sma = AddState(sma, 'Name', 'WaitForResponse', ...
         'Timer', S.GUI.TimeForResponse,...
         'StateChangeConditions', {'Tup', 'exit', RewardedPort, 'Reward', PunishedPort, 'Punish'},...
-        'OutputActions', {'PWM1', LightsOn, 'PWM3', LightsOn});
+        'OutputActions', {'PWM1', UnInformativeLightsOn, 'PWM3', UnInformativeLightsOn, LightSideStimulus, InformativeLightsOn});
 
     sma = AddState(sma, 'Name', 'Reward', ...
         'Timer', ValveTime,...
         'StateChangeConditions', {'Tup', 'Drinking'},...
-        'OutputActions', {'ValveState', ValveCode, 'PWM1', LightsOn,'PWM3', LightsOn});
+        'OutputActions', {'ValveState', ValveCode, 'PWM1', UnInformativeLightsOn,'PWM3', UnInformativeLightsOn, LightSideStimulus, InformativeLightsOn});
 
     sma = AddState(sma, 'Name', 'Drinking', ...
         'Timer', 0,...
         'StateChangeConditions', {CorrectWithdrawalEvent, 'exit'},...
-        'OutputActions', {'PWM1', LightsOn,'PWM3', LightsOn});
+        'OutputActions', {'PWM1', UnInformativeLightsOn,'PWM3', UnInformativeLightsOn, LightSideStimulus, InformativeLightsOn});
 
     sma = AddState(sma, 'Name', 'Punish', ...
         'Timer', S.GUI.TimeoutDuration,...
