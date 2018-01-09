@@ -470,10 +470,10 @@ for currentTrial = 1:MaxTrials
        
             S.GUI.PunishSound = 1;
             S.GUI.TimeoutDuration = 4;
-            S.GUI.SoundDurationNtrials = 20;
-            S.GUI.PrestimDistribution = 2;
-            S.GUI.PrestimDurationEnd = 0.10; % Prestim duration end
-            S.GUI.PrestimDurationNtrials = 20; % Required number of valid trials before each step    
+            %S.GUI.SoundDurationNtrials = 20;
+            %S.GUI.PrestimDistribution = 2;
+            %S.GUI.PrestimDurationEnd = 0.20; % Prestim duration end
+            %S.GUI.PrestimDurationNtrials = 20; % Required number of valid trials before each step    
                     
         case 4 % Full task 3
                % Full 3: sound duration ramping up 2 trials, prestim 0.25 uniform
